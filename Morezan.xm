@@ -137,6 +137,14 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 
     NSArray* cmtContent = @[@"高级", @"点赞就完事了", @"6666", @"赞~", @"这个不错",@"什么鬼东西= = ", @"你说的就是这个？" ,@"牛皮", @"来了~~", @"cxk牛b"];
 
+    BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
+    if (isOpenMyCmt)
+    {
+    	NSLog(@"xia0:create my comment content.");
+        NSString * myCmtContent = [[NSUserDefaults standardUserDefaults] objectForKey:@"kMoreCmtMyCmtContent"];
+        cmtContent = [myCmtContent componentsSeparatedByString:@"\n"];
+    }
+
     NSLog(@"xia0:start creat fake cmts");
 	// create new fake data: this add 10
 	for (int i = 0; i < cmtCount; ++i)

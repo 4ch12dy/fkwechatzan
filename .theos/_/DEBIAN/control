@@ -1,0 +1,10 @@
+Package: com.xia0.fkwechatzan
+Name: fkwechatzan
+Depends: mobilesubstrate
+Architecture: iphoneos-arm
+Description: show me the more wechat zan!!!
+Maintainer: xia0
+Author: xia0
+Section: Tweaks
+Version: 0.0.1-9+debug
+Installed-Size: 228

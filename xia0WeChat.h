@@ -1,6 +1,22 @@
 #pragma mark - Util
 #import <UIKit/UIKit.h>
 
+
+#define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
+#define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
+//适配IP6和6+的等比放大效果
+#define FIX_SIZE(num) ((num) * SCREEN_WIDTH / 320.0)
+#define FIX_FONT_SIZE(size) SCREEN_WIDTH < 375 ? ((size + 4.0) / 2.0) : SCREEN_WIDTH == 375 ? ((size + 8.0) / 2.0) : ((size + 12.0) / 2.0)
+#define TKFont(size) [UIFont systemFontOfSize:FIX_FONT_SIZE(size)]
+#define RGBA(r, g, b, a) [UIColor colorWithRed:(r) / 255.0 green:(g) / 255.0 blue:(b) / 255.0 alpha:(a)]
+#define RGB(r, g, b) RGBA(r, g, b, 1)
+
+
+@interface MMTextView : UITextView
+@property(retain, nonatomic) NSString *placeholder;
+@end
+
+
 @interface WCBizUtil : NSObject
 
 + (id)dictionaryWithDecodedComponets:(id)arg1 separator:(id)arg2;

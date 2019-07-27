@@ -2,6 +2,7 @@
 #import "WBSettingViewController.h"
 #import <objc/objc-runtime.h>
 #import "WBMultiSelectGroupsViewController.h"
+#import "XEditViewController.h"
 
 @interface WBSettingViewController () <MultiSelectGroupsViewControllerDelegate>
 
@@ -13,6 +14,12 @@
 
 - (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
+        // 增加对iPhone X的屏幕适配
+        CGRect winSize = [UIScreen mainScreen].bounds;
+        if (winSize.size.height == 812) { // iPhone X 高为812
+            winSize.size.height -= 88;
+            winSize.origin.y = 88;
+        }
         _tableViewInfo = [[objc_getClass("WCTableViewManager") alloc] initWithFrame:[UIScreen mainScreen].bounds style:UITableViewStyleGrouped];
     }
     return self;
@@ -37,7 +44,7 @@
 }
 
 - (void)initTitle {
-    self.title = @"Show Me More LikeUsers";
+    self.title = @"集赞助手设置";
     
     [self.navigationController.navigationBar setTitleTextAttributes:@{NSFontAttributeName: [UIFont boldSystemFontOfSize:18.0]}];
 }
@@ -59,11 +66,19 @@
 
     [sectionInfo addCell:[self createFKZanCell]];
     [sectionInfo addCell:[self createFKCmtCell]];
+
+    [sectionInfo addCell:[self createMyCmtSwitchCell]];
+
+    BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
+    if (isOpenMyCmt)
+    {
+        [sectionInfo addCell:[self createMyCmtContentCell]];
+    }
     
     [self.tableViewInfo addSection:sectionInfo];
 }
 
-- (WCTableViewSectionManager *)createFKZanCell {
+- (WCTableViewCellManager *)createFKZanCell {
     NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
     if (!zanCount)
     {
@@ -87,7 +102,7 @@
                                }];
 }
 
-- (WCTableViewSectionManager *)createFKCmtCell {
+- (WCTableViewCellManager *)createFKCmtCell {
     NSInteger cmtCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreCmtID"];
     if (!cmtCount)
     {
@@ -111,6 +126,42 @@
                                }];
 }
 
+- (WCTableViewCellManager *)createMyCmtSwitchCell {
+
+    BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingMyCmtSwitch:) target:self title:@"开启自定义评论" on:isOpenMyCmt];
+
+    return cellInfo;
+}
+
+- (WCTableViewCellManager *)createMyCmtContentCell {
+    NSString *myCmtContent = [[NSUserDefaults standardUserDefaults] objectForKey:@"kMoreCmtMyCmtContent"];
+    myCmtContent = myCmtContent.length == 0 ? @"请填写" : myCmtContent;
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") normalCellForSel:@selector(settingMyCmtContent) target:self title:@"自定义评论内容" rightValue:myCmtContent WithDisclosureIndicator:1];
+
+    return cellInfo;
+}
+
+- (void)settingMyCmtSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kMoreCmtOpenMyCmt"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
+
+- (void)settingMyCmtContent {
+    XEditViewController *editVC = [[XEditViewController alloc] init];
+    editVC.text = [[NSUserDefaults standardUserDefaults] objectForKey:@"kMoreCmtMyCmtContent"];
+    [editVC setEndEditing:^(NSString *text) {
+        [[NSUserDefaults standardUserDefaults] setObject:text forKey:@"kMoreCmtMyCmtContent"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        [self reloadTableData];
+    }];
+    editVC.title = @"请输入自定义评论内容";
+    editVC.placeholder = @"开启时会从中随机生成(一行为一条评论)";
+    [self.navigationController PushViewController:editVC animated:YES];
+}
 
 #pragma mark - About
 - (void)addAboutSection {
