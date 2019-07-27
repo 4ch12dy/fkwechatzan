@@ -2,6 +2,10 @@
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
+.theos/
+packages/
+obj/
+
 ## Build generated
 build/
 DerivedData/
