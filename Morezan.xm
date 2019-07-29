@@ -86,10 +86,10 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 	}
 
 	NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
-    if (!zanCount || zanCount == 0)
-    {
-        return newLikeUsers;
-    }
+	if (!zanCount || zanCount == 0)
+	{
+		return newLikeUsers;
+	}
 
 	// create new fake data: this add 10
 	for (int i = 0; i < zanCount; ++i)
