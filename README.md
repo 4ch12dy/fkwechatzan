@@ -11,9 +11,9 @@
 
 - 如果你会iOS越狱开发的话，应该装有theos环境，那么直接运行build.sh脚本就可以了。
 - 如果你会安装deb插件包的话，package目录下有一个deb包。自己传到手机上手动安装也行。
-- 以上你都不熟悉的话，那就等两天插件过bigboss审核以后，直接在cydia里面搜索fkwechatzan安装就行
+- 以上你都不熟悉的话，大老板源（BigBoss源）直接在cydia里面搜索fkwechatzan安装就行
 
-BigBoss源搜索:fkwechatzan  (正在审核上传)
+BigBoss源搜索:fkwechatzan 
 
 
 
