@@ -3,19 +3,23 @@
 
 ### Install
 
-just run `build.sh`
-
-or
+- 如果你会iOS越狱开发的话，应该装有theos环境，那么直接运行build.sh脚本就可以了。
+- 如果你会安装deb插件包的话，package目录下有一个deb包。自己传到手机上手动安装也行。
+- 以上你都不熟悉的话，那就等两天插件过bigboss审核以后，直接在cydia里面搜索fkwechatzan安装就行
 
 BigBoss源搜索:fkwechatzan  (正在审核上传)
 
 
 
+### Todo
+
+- 选择指定好友点赞评论（伪造一些不正当言论，哈哈哈）
+- 评论时间随机化，目前就是1分钟。为了更加真实，点赞评论的时间在朋友圈的时间前随机
+- ...
+
 ### Introduction
 
 此功能的分析：[**微信集赞/评论插件分析及开发**](http://4ch12dy.site/2019/07/22/fkwechatLike/fkwechatLike/)  
-
-enjoy~
 
 
 
