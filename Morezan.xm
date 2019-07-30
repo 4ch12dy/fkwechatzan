@@ -204,7 +204,7 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 // more zan in moment refresh
 %hook WCTimelineMgr
 
-- (void)onDataUpdated:(id)arg1 andData:(NSMutableArray*)data andAdData:(id)arg3 withChangedTime:(id)arg4{
+- (void)onDataUpdated:(id)arg1 andData:(NSMutableArray*)data andAdData:(id)arg3 withChangedTime:(unsigned int)arg4{
 	// [[[MMServiceCenter defaultCenter] getService:[CContactMgr class]] getContactByName:[SettingUtil getCurUsrName]]
 	for (WCDataItem* item in data){
 		NSString* curUsreName = [item username];
