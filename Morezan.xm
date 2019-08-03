@@ -71,8 +71,25 @@
 @end
 
 
+ // -[MicroMessengerAppDelegate application:didFinishLaunchingWithOptions:]
+%hook MicroMessengerAppDelegate
 
-NSMutableArray* getFriendList(){
+-(bool)application:(void *)arg2 didFinishLaunchingWithOptions:(void *)arg3 {
+	// remove cache when reLaunch wechat for contact updating
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"kFriendListCache"];
+	return %orig;
+}
+
+%end
+
+NSArray* getFriendList(){
+	// if cache exsist, return it.
+	NSArray* cache = [[NSUserDefaults standardUserDefaults] objectForKey:@"kFriendListCache"];
+	if (cache)
+	{
+		return cache;
+	}
+
 	NSMutableArray* friendList = [NSMutableArray array];
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	for(NSString* curUsreName in allUserNameArr){
@@ -82,6 +99,8 @@ NSMutableArray* getFriendList(){
 			[friendList addObject:curUsreName];
 		}
 	}
+	[[NSUserDefaults standardUserDefaults] setObject:friendList forKey:@"kFriendListCache"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 
 	return friendList;
 } 
