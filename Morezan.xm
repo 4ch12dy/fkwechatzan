@@ -71,6 +71,22 @@
 @end
 
 
+
+NSMutableArray* getFriendList(){
+	NSMutableArray* friendList = [NSMutableArray array];
+	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
+	for(NSString* curUsreName in allUserNameArr){
+		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curUsreName];
+		if (curAddContact.m_uiFriendScene != 0)
+		{
+			[friendList addObject:curUsreName];
+		}
+	}
+
+	return friendList;
+} 
+
+
 NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 	NSMutableArray* newLikeUsers = [NSMutableArray array];
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
@@ -94,9 +110,12 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 	// create new fake data: this add 10
 	for (int i = 0; i < zanCount; ++i)
 	{	
-		uint32_t idx = arc4random() % [allUserNameArr count];
-		NSString* curAddUserName = [allUserNameArr objectAtIndex:idx];
+		NSArray* friendArr = getFriendList();
+		uint32_t idx = arc4random() % [friendArr count];
+		NSString* curAddUserName = [friendArr objectAtIndex:idx];
 		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curAddUserName];
+
+
 		NSString* curAddNickName = [curAddContact m_nsNickName];
 
 		WCUserComment* curAddUserComment = [[%c(WCUserComment) alloc] init];
@@ -150,11 +169,12 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 	for (int i = 0; i < cmtCount; ++i)
 	{	
 		// NSLog(@"xia0:debug 1");
-		uint32_t idx = arc4random() % [allUserNameArr count];
-		NSString* curAddUserName = [allUserNameArr objectAtIndex:idx];
+		NSArray* friendArr = getFriendList();
+		uint32_t idx = arc4random() % [friendArr count];
+		NSString* curAddUserName = [friendArr objectAtIndex:idx];
 		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curAddUserName];
+		
 		NSString* curAddNickName = [curAddContact m_nsNickName];
-
 		// NSLog(@"xia0:debug 2");
 		WCUserComment* curAddUserComment = [[%c(WCUserComment) alloc] init];
 		curAddUserComment.username = curAddUserName;

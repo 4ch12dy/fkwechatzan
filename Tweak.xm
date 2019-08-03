@@ -10,7 +10,7 @@
 
 	WCTableViewSectionManager *sectionInfo = [%c(WCTableViewSectionManager) defaultSection];
 
-	WCTableViewCellManager *settingCell = [%c(WCTableViewCellManager) normalCellForSel:@selector(setting) target:self title:@"集赞助手(show me more zan)"];
+	WCTableViewCellManager *settingCell = [%c(WCTableViewCellManager) normalCellForSel:@selector(setting) target:self title:@"集赞助手"];
 	[sectionInfo addCell:settingCell];
 
 	[tableViewInfo insertSection:sectionInfo At:0];
