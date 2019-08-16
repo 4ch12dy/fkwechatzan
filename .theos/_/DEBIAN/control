@@ -2,9 +2,9 @@ Package: com.xia0.fkwechatzan
 Name: fkwechatzan
 Depends: mobilesubstrate
 Architecture: iphoneos-arm
-Description: show me the more wechat zan!!!
+Description: 微信集赞助手！集赞换礼品终结者~
 Maintainer: xia0
 Author: xia0
 Section: Tweaks
-Version: 0.0.1-13+debug
-Installed-Size: 228
+Version: 0.0.2-3+debug
+Installed-Size: 244

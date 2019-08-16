@@ -55,6 +55,9 @@
 @property (nonatomic, copy) NSString *m_nsEncodeUserName;                // 微信用户名转码
 @property (nonatomic, assign) int m_uiFriendScene;                       // 是否是自己的好友(非订阅号、自己)
 @property (nonatomic,assign) BOOL m_isPlugin;                            // 是否为微信插件
+
+@property (nonatomic,assign) unsigned int m_uiType; // 联系人类型  3：公众号  2：群聊  4：正常朋友 1:商家品牌
+
 - (BOOL)isChatroom;
 @end
 
@@ -70,23 +73,14 @@
 @property (nonatomic, copy) WCDataItem *dataItem; 
 @end
 
-
- // -[MicroMessengerAppDelegate application:didFinishLaunchingWithOptions:]
-%hook MicroMessengerAppDelegate
-
--(bool)application:(void *)arg2 didFinishLaunchingWithOptions:(void *)arg3 {
-	// remove cache when reLaunch wechat for contact updating
-	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"kFriendListCache"];
-	return %orig;
-}
-
-%end
+#define XLOG(log, ...)	NSLog(@"xia0:" log, ##__VA_ARGS__)
 
 NSArray* getFriendList(){
 	// if cache exsist, return it.
 	NSArray* cache = [[NSUserDefaults standardUserDefaults] objectForKey:@"kFriendListCache"];
-	if (cache)
+	if (cache && [cache count] > 0)
 	{
+		XLOG(@"getFriendList cache exsist: %d", [cache count]);
 		return cache;
 	}
 
@@ -94,7 +88,7 @@ NSArray* getFriendList(){
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	for(NSString* curUsreName in allUserNameArr){
 		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curUsreName];
-		if (curAddContact.m_uiFriendScene != 0)
+		if (curAddContact.m_uiFriendScene != 0 && curAddContact.m_uiType != 1 && curAddContact.m_uiType != 2 && curAddContact.m_uiType != 3)
 		{
 			[friendList addObject:curUsreName];
 		}
@@ -111,14 +105,21 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	// uint32_t value = arc4random() % 20;
 
-	// add orig like data
-	if ([origLikeUsers count] > 0)
+	BOOL isKeepOld = [[NSUserDefaults standardUserDefaults] boolForKey:@"kDatatKeepOld"];
+
+	if (isKeepOld)
 	{
-		for(id likeItem in origLikeUsers){
-			[newLikeUsers addObject:likeItem];
+		// add orig like data
+		if ([origLikeUsers count] > 0)
+		{
+			XLOG("fkzan keep old zan!");
+			for(id likeItem in origLikeUsers){
+				[newLikeUsers addObject:likeItem];
+			}
+			
 		}
-		
 	}
+
 
 	NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
 	if (!zanCount || zanCount == 0)
@@ -126,12 +127,19 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 		return newLikeUsers;
 	}
 
+	NSArray* friendArr = getFriendList();
+	NSMutableArray* choose = [NSMutableArray arrayWithArray:friendArr];
+
 	// create new fake data: this add 10
 	for (int i = 0; i < zanCount; ++i)
 	{	
-		NSArray* friendArr = getFriendList();
-		uint32_t idx = arc4random() % [friendArr count];
-		NSString* curAddUserName = [friendArr objectAtIndex:idx];
+		if (!choose || [choose count] <= 0)
+		{
+			break;
+		}
+
+		uint32_t idx = arc4random() % [choose count];
+		NSString* curAddUserName = [choose objectAtIndex:idx];
 		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curAddUserName];
 
 
@@ -147,6 +155,8 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 		curAddUserComment.createTime = nowTime;
 
 		[newLikeUsers addObject:curAddUserComment];
+
+		[choose removeObjectAtIndex:idx];
 	}
 
 	return newLikeUsers;
@@ -158,14 +168,21 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	// uint32_t value = arc4random() % 20;
 
-	// add orig like data
-	if ([origCommentUsers count] > 0)
+	BOOL isKeepOld = [[NSUserDefaults standardUserDefaults] boolForKey:@"kDatatKeepOld"];
+
+	if (isKeepOld)
 	{
-		for(id cmtItem in origCommentUsers){
-			[newCommentUsers addObject:cmtItem];
+		// add orig like data
+		if ([origCommentUsers count] > 0)
+		{
+			XLOG("fkCmt keep old cmt!");
+			for(id cmtItem in origCommentUsers){
+				[newCommentUsers addObject:cmtItem];
+			}
+			
 		}
-		
 	}
+
 
 	NSInteger cmtCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreCmtID"];
     if (!cmtCount || cmtCount == 0)
@@ -217,22 +234,40 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 	return newCommentUsers;
 }
 
+ // -[MicroMessengerAppDelegate application:didFinishLaunchingWithOptions:]
+%hook MicroMessengerAppDelegate
+
+-(bool)application:(void *)arg2 didFinishLaunchingWithOptions:(void *)arg3 {
+	// remove cache when reLaunch wechat for contact updating
+	[[NSUserDefaults standardUserDefaults] removeObjectForKey:@"kFriendListCache"];
+	getFriendList();
+	return %orig;
+}
+
+%end
+
 
 // more zan in timeline detail
 %hook WCCommentDetailViewControllerFB
 
 -(void)setDataItem:(WCDataItem*)dataItem{
 
-	NSMutableArray* origLikeUsers = [dataItem likeUsers];
-	NSMutableArray* origCommentUsers = [dataItem commentUsers];
+	NSString* curUsreName = [dataItem username];
+	NSString* myName = [%c(SettingUtil) getCurUsrName];
+	if ([curUsreName isEqualToString:myName])
+	{
+		NSMutableArray* origLikeUsers = [dataItem likeUsers];
+		NSMutableArray* origCommentUsers = [dataItem commentUsers];
 
-	NSMutableArray* newLikeUsers = fkzan(origLikeUsers);
-	NSMutableArray* newCommentUsers = fkCmt(origCommentUsers);
+		NSMutableArray* newLikeUsers = fkzan(origLikeUsers);
+		NSMutableArray* newCommentUsers = fkCmt(origCommentUsers);
 
-	dataItem.likeUsers = newLikeUsers;
-	dataItem.likeCount = [newLikeUsers count];
-	dataItem.commentUsers = newCommentUsers;
-	dataItem.commentCount = [newCommentUsers count];
+		dataItem.likeUsers = newLikeUsers;
+		dataItem.likeCount = [newLikeUsers count];
+		dataItem.commentUsers = newCommentUsers;
+		dataItem.commentCount = [newCommentUsers count];
+
+	}
 
 	return %orig;
 }
@@ -251,11 +286,11 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 		NSMutableArray* likeUsers = [item likeUsers];
 		NSMutableArray* origCommentUsers = [item commentUsers];
 
-
 		NSString* myName = [%c(SettingUtil) getCurUsrName];
 
 		if ([curUsreName isEqualToString:myName])
 		{	
+			XLOG(@"WCTimelineMgr onDataUpdated: is my timeline. start fake");
 			item.likeUsers = fkzan(likeUsers);
 			item.likeCount = [item.likeUsers count];
 

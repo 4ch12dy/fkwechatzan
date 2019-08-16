@@ -4,6 +4,8 @@
 #import "WBMultiSelectGroupsViewController.h"
 #import "XEditViewController.h"
 
+#define XLOG(log, ...)  NSLog(@"xia0:" log, ##__VA_ARGS__)
+
 @interface WBSettingViewController () <MultiSelectGroupsViewControllerDelegate>
 
 @property (nonatomic, strong) WCTableViewManager *tableViewInfo;
@@ -62,10 +64,13 @@
 
 #pragma mark - ZanSetting
 - (void)addZanSettingSection {
-    WCTableViewSectionManager *sectionInfo = [objc_getClass("WCTableViewSectionManager") sectionInfoHeader:@"集赞功能设置"];
+    WCTableViewSectionManager *sectionInfo = [objc_getClass("WCTableViewSectionManager") sectionInfoHeader:@"集赞功能设置:建议先在朋友圈详情页面刷新数据再回到朋友圈查看，每次重新打开微信会更新朋友联系人数量。bug反馈、建议可以去github发起issue。获取最新的版本，可以添加作者源：https://xia0z.github.io"];
 
     [sectionInfo addCell:[self createFKZanCell]];
     [sectionInfo addCell:[self createFKCmtCell]];
+
+    [sectionInfo addCell:[self createKeepOldSwitchCell]];
+    // [sectionInfo addCell:[self createMyCmtSwitchCell]];
 
     [sectionInfo addCell:[self createMyCmtSwitchCell]];
 
@@ -89,11 +94,19 @@
 }
 
 - (void)settingMoreZan{
+    int frienfCount = 0;
+    NSArray* friendArr = [[NSUserDefaults standardUserDefaults] objectForKey:@"kFriendListCache"];
+    XLOG(@"settingMoreZan frienfCount:%d", [friendArr count]);
+    if (friendArr)
+    {
+        frienfCount = [friendArr count];
+    }
+
     NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
     [self alertControllerWithTitle:@"集赞数量设置"
-                           message:@"设置需要增加的赞个数（原始赞保留）"
+                           message:@"设置需要的赞个数\n数量最多为朋友总数量"
                            content:[NSString stringWithFormat:@"%ld", (long)zanCount]
-                       placeholder:@"请输入增加赞数"
+                       placeholder:[NSString stringWithFormat:@"当前数量:%ld", (long)zanCount]
                       keyboardType:UIKeyboardTypeNumberPad
                                blk:^(UITextField *textField) {
                                    [[NSUserDefaults standardUserDefaults] setInteger:textField.text.integerValue forKey:@"kMoreZanID"];
@@ -113,17 +126,34 @@
 }
 
 - (void)settingMoreCmt{
+    int frienfCount = 0;
+    NSArray* friendArr = [[NSUserDefaults standardUserDefaults] objectForKey:@"kFriendListCache"];
+    XLOG(@"settingMoreCmt frienfCount:%d", [friendArr count]);
+    if (friendArr)
+    {
+        frienfCount = [friendArr count];
+    }
+
     NSInteger cmtCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreCmtID"];
     [self alertControllerWithTitle:@"评论数量设置"
-                           message:@"设置需要增加的评论个数（原始评论保留）"
+                           message:@"设置需要的评论个数\n数量最多为朋友总数量"
                            content:[NSString stringWithFormat:@"%ld", (long)cmtCount]
-                       placeholder:@"请输入增加评论数"
+                       placeholder:[NSString stringWithFormat:@"当前数量:%ld", (long)cmtCount]
                       keyboardType:UIKeyboardTypeNumberPad
                                blk:^(UITextField *textField) {
                                    [[NSUserDefaults standardUserDefaults] setInteger:textField.text.integerValue forKey:@"kMoreCmtID"];
                                    [[NSUserDefaults standardUserDefaults] synchronize];
                                    [self reloadTableData];
                                }];
+}
+
+- (WCTableViewCellManager *)createKeepOldSwitchCell {
+
+    BOOL isKeepOld = [[NSUserDefaults standardUserDefaults] boolForKey:@"kDatatKeepOld"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingKeepOldSwitch:) target:self title:@"开启保留原始赞/评论" on:isKeepOld];
+
+    return cellInfo;
 }
 
 - (WCTableViewCellManager *)createMyCmtSwitchCell {
@@ -143,6 +173,14 @@
 
     return cellInfo;
 }
+
+
+- (void)settingKeepOldSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kDatatKeepOld"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
+
 
 - (void)settingMyCmtSwitch:(UISwitch *)arg {
     [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kMoreCmtOpenMyCmt"];

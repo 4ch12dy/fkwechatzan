@@ -13,7 +13,13 @@
 - 如果你会安装deb插件包的话，package目录下有一个deb包。自己传到手机上手动安装也行。
 - 以上你都不熟悉的话，大老板源（BigBoss源）直接在cydia里面搜索fkwechatzan安装就行
 
-BigBoss源搜索:fkwechatzan 
+
+
+**Cydia/Sileo添加以下源获取最新的版本**
+
+[https://xia0z.github.io](https://xia0z.github.io)
+
+或BigBoss源搜索:fkwechatzan 
 
 
 
