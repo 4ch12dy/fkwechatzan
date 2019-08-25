@@ -36,6 +36,7 @@
     self.edgesForExtendedLayout = UIRectEdgeNone;
 
     MMTableView *tableView = [self.tableViewInfo getTableView];
+    [tableView setContentInset:UIEdgeInsetsMake(0,0,65,0)];
     [self.view addSubview:tableView];
 }
 
@@ -46,7 +47,7 @@
 }
 
 - (void)initTitle {
-    self.title = @"集赞助手设置";
+    self.title = @"积攒助手设置";
     
     [self.navigationController.navigationBar setTitleTextAttributes:@{NSFontAttributeName: [UIFont boldSystemFontOfSize:18.0]}];
 }
@@ -59,6 +60,7 @@
     [self addAboutSection];
     
     MMTableView *tableView = [self.tableViewInfo getTableView];
+
     [tableView reloadData];
 }
 
@@ -66,22 +68,40 @@
 - (void)addZanSettingSection {
     WCTableViewSectionManager *sectionInfo = [objc_getClass("WCTableViewSectionManager") sectionInfoHeader:@"集赞功能设置:建议先在朋友圈详情页面刷新数据再回到朋友圈查看，每次重新打开微信会更新朋友联系人数量。bug反馈、建议可以去github发起issue。获取最新的版本，可以添加作者源：https://xia0z.github.io"];
 
-    [sectionInfo addCell:[self createFKZanCell]];
-    [sectionInfo addCell:[self createFKCmtCell]];
-
-    [sectionInfo addCell:[self createKeepOldSwitchCell]];
-    // [sectionInfo addCell:[self createMyCmtSwitchCell]];
-
-    [sectionInfo addCell:[self createMyCmtSwitchCell]];
-
-    BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
-    if (isOpenMyCmt)
+    [sectionInfo addCell:[self createOpenFKZanCell]];
+    BOOL isOpenFKZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kOpenFKZan"];
+    if (isOpenFKZan)
     {
-        [sectionInfo addCell:[self createMyCmtContentCell]];
+        [sectionInfo addCell:[self createFKZanCell]];
+        [sectionInfo addCell:[self createFKCmtCell]];
+
+        [sectionInfo addCell:[self createKeepOldSwitchCell]];
+        [sectionInfo addCell:[self createRandomPerOpenCell]];
+        [sectionInfo addCell:[self createNotFriendZanCell]];
+        [sectionInfo addCell:[self createFriendZanRepeatCell]];
+
+        [sectionInfo addCell:[self createMyCmtSwitchCell]];
+
+        BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
+        if (isOpenMyCmt)
+        {
+            [sectionInfo addCell:[self createMyCmtContentCell]];
+        }
     }
-    
+
     [self.tableViewInfo addSection:sectionInfo];
 }
+
+
+- (WCTableViewCellManager *)createOpenFKZanCell {
+
+    BOOL isOpenFKZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kOpenFKZan"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingOpenFKZanSwitch:) target:self title:@"开启积攒插件功能" on:isOpenFKZan];
+
+    return cellInfo;
+}
+
 
 - (WCTableViewCellManager *)createFKZanCell {
     NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
@@ -103,7 +123,7 @@
     }
 
     NSInteger zanCount = [[NSUserDefaults standardUserDefaults] integerForKey:@"kMoreZanID"];
-    [self alertControllerWithTitle:@"集赞数量设置"
+    [self alertControllerWithTitle:@"积攒数量设置"
                            message:@"设置需要的赞个数\n数量最多为朋友总数量"
                            content:[NSString stringWithFormat:@"%ld", (long)zanCount]
                        placeholder:[NSString stringWithFormat:@"当前数量:%ld", (long)zanCount]
@@ -156,6 +176,34 @@
     return cellInfo;
 }
 
+- (WCTableViewCellManager *)createRandomPerOpenCell {
+
+    BOOL randomPerOpen = [[NSUserDefaults standardUserDefaults] boolForKey:@"kRandomPerOpen"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingRandomPerOpenSwitch:) target:self title:@"开启每次赞/评论数据随机刷新" on:randomPerOpen];
+
+    return cellInfo;
+}
+
+- (WCTableViewCellManager *)createNotFriendZanCell {
+
+    BOOL notFriendZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kNotFriendZan"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingNotFriendZanSwitch:) target:self title:@"开启非好友点赞/评论" on:notFriendZan];
+
+    return cellInfo;
+}
+
+- (WCTableViewCellManager *)createFriendZanRepeatCell {
+
+    BOOL friendZanRepeat = [[NSUserDefaults standardUserDefaults] boolForKey:@"kFriendZanRepeat"];
+
+    WCTableViewCellManager *cellInfo = [objc_getClass("WCTableViewCellManager") switchCellForSel:@selector(settingFriendZanRepeatSwitch:) target:self title:@"开启点赞好友可以重复" on:friendZanRepeat];
+
+    return cellInfo;
+}
+
+
 - (WCTableViewCellManager *)createMyCmtSwitchCell {
 
     BOOL isOpenMyCmt = [[NSUserDefaults standardUserDefaults] boolForKey:@"kMoreCmtOpenMyCmt"];
@@ -174,6 +222,11 @@
     return cellInfo;
 }
 
+- (void)settingOpenFKZanSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kOpenFKZan"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
 
 - (void)settingKeepOldSwitch:(UISwitch *)arg {
     [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kDatatKeepOld"];
@@ -181,6 +234,25 @@
     [self reloadTableData];
 }
 
+
+- (void)settingNotFriendZanSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"kFriendListCache"];
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kNotFriendZan"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
+
+- (void)settingRandomPerOpenSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kRandomPerOpen"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
+
+- (void)settingFriendZanRepeatSwitch:(UISwitch *)arg {
+    [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kFriendZanRepeat"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    [self reloadTableData];
+}
 
 - (void)settingMyCmtSwitch:(UISwitch *)arg {
     [[NSUserDefaults standardUserDefaults] setBool:arg.on forKey:@"kMoreCmtOpenMyCmt"];
@@ -203,7 +275,7 @@
 
 #pragma mark - About
 - (void)addAboutSection {
-    WCTableViewSectionManager *sectionInfo = [objc_getClass("WCTableViewSectionManager") sectionInfoHeader:@"关于我/项目"];
+    WCTableViewSectionManager *sectionInfo = [objc_getClass("WCTableViewSectionManager") sectionInfoHeader:@"关于我/项目" Footer:@"\nDEVELOPED BY X1A0@2019\n\n"];
     
     [sectionInfo addCell:[self createAboutmeCell]];
     [sectionInfo addCell:[self createGithubCell]];

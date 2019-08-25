@@ -88,9 +88,19 @@ NSArray* getFriendList(){
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	for(NSString* curUsreName in allUserNameArr){
 		CContact* curAddContact = [[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getContactByName:curUsreName];
-		if (curAddContact.m_uiFriendScene != 0 && curAddContact.m_uiType != 1 && curAddContact.m_uiType != 2 && curAddContact.m_uiType != 3)
+		if (curAddContact.m_uiType != 1 && curAddContact.m_uiType != 2 && curAddContact.m_uiType != 3)
 		{
-			[friendList addObject:curUsreName];
+			BOOL isNotFriendZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kNotFriendZan"];
+
+			if (isNotFriendZan)
+			{ 
+				[friendList addObject:curUsreName];
+			}else{
+				if (curAddContact.m_uiFriendScene != 0)
+				{
+					[friendList addObject:curUsreName];
+				}
+			}
 		}
 	}
 	[[NSUserDefaults standardUserDefaults] setObject:friendList forKey:@"kFriendListCache"];
@@ -101,6 +111,19 @@ NSArray* getFriendList(){
 
 
 NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
+
+	BOOL isRandomPerOpen = [[NSUserDefaults standardUserDefaults] boolForKey:@"kRandomPerOpen"];
+	NSData *lastData = [[NSUserDefaults standardUserDefaults] objectForKey:@"kLastNewLikeUsers"];
+
+	NSArray *last = [NSKeyedUnarchiver unarchiveObjectWithData:lastData];
+
+	NSMutableArray* lastMutableArray = [NSMutableArray arrayWithArray: last];
+
+	if (!isRandomPerOpen && lastMutableArray)
+	{ 
+		return lastMutableArray;
+	}
+
 	NSMutableArray* newLikeUsers = [NSMutableArray array];
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	// uint32_t value = arc4random() % 20;
@@ -155,15 +178,33 @@ NSMutableArray* fkzan(NSMutableArray* origLikeUsers){
 		curAddUserComment.createTime = nowTime;
 
 		[newLikeUsers addObject:curAddUserComment];
+		
 
-		[choose removeObjectAtIndex:idx];
+		BOOL isFriendZanRepeat = [[NSUserDefaults standardUserDefaults] boolForKey:@"kFriendZanRepeat"];
+		if (!isFriendZanRepeat)
+		{
+			[choose removeObjectAtIndex:idx];
+		}
 	}
-
+	NSData *data = [NSKeyedArchiver archivedDataWithRootObject: newLikeUsers]; 
+	[[NSUserDefaults standardUserDefaults] setObject:data forKey:@"kLastNewLikeUsers"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 	return newLikeUsers;
 }
 
 
 NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
+
+	
+	BOOL isRandomPerOpen = [[NSUserDefaults standardUserDefaults] boolForKey:@"kRandomPerOpen"];
+	NSData* lastData = [[NSUserDefaults standardUserDefaults] objectForKey:@"kLastNewCommentUsers"];
+	NSArray *last = [NSKeyedUnarchiver unarchiveObjectWithData:lastData];
+	NSMutableArray* lastMutableArray = [NSMutableArray arrayWithArray: last];
+	if (!isRandomPerOpen && lastMutableArray)
+	{ 
+		return lastMutableArray;
+	}
+
 	NSMutableArray* newCommentUsers = [NSMutableArray array];
 	NSArray* allUserNameArr = [[[[%c(MMServiceCenter) defaultCenter] getService:[%c(CContactMgr) class]] getAllContactUserName] allObjects];
 	// uint32_t value = arc4random() % 20;
@@ -230,6 +271,9 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 		// NSLog(@"xia0:%@ %@ %d %@ %@ %@ %@", curAddUserName, curAddNickName,curAddUserComment.type, curAddUserComment.commentID, curAddUserComment.content,curAddUserComment.contentPattern,curAddUserComment.m_cpKeyForComment);
 		[newCommentUsers addObject:curAddUserComment];
 	}
+	NSData *data = [NSKeyedArchiver archivedDataWithRootObject: newCommentUsers]; 
+	[[NSUserDefaults standardUserDefaults] setObject:data forKey:@"kLastNewCommentUsers"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 
 	return newCommentUsers;
 }
@@ -251,6 +295,12 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 %hook WCCommentDetailViewControllerFB
 
 -(void)setDataItem:(WCDataItem*)dataItem{
+
+	BOOL isOpenFKZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kOpenFKZan"];
+	if (!isOpenFKZan)
+	{
+		return %orig;
+	}
 
 	NSString* curUsreName = [dataItem username];
 	NSString* myName = [%c(SettingUtil) getCurUsrName];
@@ -279,6 +329,13 @@ NSMutableArray* fkCmt(NSMutableArray* origCommentUsers){
 %hook WCTimelineMgr
 
 - (void)onDataUpdated:(id)arg1 andData:(NSMutableArray*)data andAdData:(id)arg3 withChangedTime:(unsigned int)arg4{
+
+	BOOL isOpenFKZan = [[NSUserDefaults standardUserDefaults] boolForKey:@"kOpenFKZan"];
+	if (!isOpenFKZan)
+	{
+		return %orig;
+	}
+
 	// [[[MMServiceCenter defaultCenter] getService:[CContactMgr class]] getContactByName:[SettingUtil getCurUsrName]]
 	for (WCDataItem* item in data){
 		NSString* curUsreName = [item username];

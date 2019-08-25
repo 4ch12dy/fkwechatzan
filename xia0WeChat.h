@@ -171,12 +171,13 @@
 
 #pragma mark - MMTableView
 
-@interface MMTableViewInfo
+@interface MMTableViewInfo : UITableView
 
 - (id)getTableView;
 - (void)clearAllSection;
 - (void)addSection:(id)arg1;
 - (void)insertSection:(id)arg1 At:(unsigned int)arg2;
+- (void)setContentInset:(id)arg1;
 
 @end
 
