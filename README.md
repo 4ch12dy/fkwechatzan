@@ -22,9 +22,9 @@
 或BigBoss源搜索:fkwechatzan 
 
 
-由于存在交流反馈不及时等问题，这里有一个TG群。建议bug可以进群反馈
+由于存在交流反馈不及时等问题，这里有一个QQ群。建议bug可以进群反馈
 
-https://t.me/joinchat/Iyg6jhYRK3veNceXgGN0Bg
+QQ群：951270873
 
 ### 更新
 
